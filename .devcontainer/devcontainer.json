@@ -21,7 +21,8 @@
 				"ms-vscode.vscode-typescript-next",
 				"ms-vscode.js-debug-nightly",
 				"dotenv.dotenv-vscode",
-				"VisualStudioExptTeam.vscodeintellicode"
+				"VisualStudioExptTeam.vscodeintellicode",
+				"mikestead.dotenv"
 			]
 		}
 	}
