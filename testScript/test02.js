@@ -43,7 +43,7 @@ async function getAccountBalance(address) {
 
     // MNBC Balance
     const coinBalance = await CoinFB.methods.balanceOf(address).call();
-    console.log(`MahiroCoin Balance: ${web3FB.utils.fromWei(coinBalance, 'ether')} MNBC`);
+    console.log(`MahiroCoin Balance: ${web3FB.utils.fromWei(coinBalance, 'ether')} MHRC`);
 }
 
 
@@ -143,11 +143,18 @@ async function sendETH(signerAddr, to, amount){
     myAddrFB = await web3FB.eth.getAccounts();
     console.log('myAdderFB=',inspect(myAddrFB, false, null, true));
     signer_addressFB = myAddrFB[0]
+
+    
+    console.log("-------- GET VALUE ---------");
     await getAccountBalance(signer_addressFB);
 
-
     // send ETH
-    sendETH(signer_addressFB,process.env.METAMASK,0.00000123);
+    console.log("-------- SEND ETH ---------");
+    await sendETH(signer_addressFB,process.env.METAMASK,0.00000123);
+
+    
+    console.log("-------- GET VALUE ---------");
+    await getAccountBalance(signer_addressFB);
 
 
 })().catch(error => {

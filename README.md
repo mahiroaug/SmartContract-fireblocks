@@ -34,3 +34,17 @@ create scripts/deploy.js
 ```
 npx hardhat run --network goerli scripts/deploy.js
 ```
+
+### setup environment
+
+```
+NETWORK=goerli
+FIREBLOCKS_API_KEY_SIGNER=
+FIREBLOCKS_API_KEY_NONSIGNINGADMIN=
+FIREBLOCKS_API_KEY_ADMIN=
+FIREBLOCKS_URL=https://api.fireblocks.io
+FIREBLOCKS_VAULT_ACCOUNT_ID=
+COIN_CA_OWNED_SIGNER=
+COIN_CA_OWNED_ADMIN=
+METAMASK=
+```
