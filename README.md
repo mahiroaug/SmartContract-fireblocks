@@ -48,3 +48,32 @@ COIN_CA_OWNED_SIGNER=
 COIN_CA_OWNED_ADMIN=
 METAMASK=
 ```
+
+### STEP4: setup lambda
+
+
+#### deplicated
+```
+cd webhook
+zip -r layer.zip node_modules
+aws s3 cp layer.zip s3://YOUR_BUCKET_NAME/DATE/
+
+cd lambda
+zip -r lf_fireblocks-webhook.zip index.js
+aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb://lf_fireblocks-webhook.zip
+
+```
+
+#### latest
+```
+cd webhook
+zip -r lf_all.zip ./
+aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb://lf_all.zip
+```
+
+### STEP5: run script
+
+```
+cd <PROJECT_ROOT>
+node testScript/test02.js
+```
