@@ -1,4 +1,4 @@
-const { WebClient } = require('@slack/web-api');
+const { WebClient, LogLevel } = require("@slack/web-api");
 const crypto = require("crypto");
 
 const publicKey = `-----BEGIN PUBLIC KEY-----
@@ -17,12 +17,17 @@ tSM7QYNhlftT4/yVvYnk0YcCAwEAAQ==
 -----END PUBLIC KEY-----`.replace(/\\n/g, "\n");
 
 
+const slackClient = new WebClient(process.env.SLACK_OAUTH_TOKEN, {
+    // LogLevel can be imported and used to make debugging simpler
+    logLevel: LogLevel.DEBUG
+});
+const channel = process.env.SLACK_POST_CHANNEL;
+
+
+
 exports.handler = async (event, context) => {
     
     // ##### initializer ####################################
-    const slackClient = new WebClient(process.env.SLACK_OAUTH_TOKEN);
-    const channel = process.env.SLACK_POST_CHANNEL;
-
     const currentUnixTime = Math.floor(Date.now() / 1000);
 
     // ##### verify signature ####################################
@@ -44,8 +49,8 @@ exports.handler = async (event, context) => {
 
     const attachments = [
         {
-            pretext: "fireblocks notification",
-            fallback: "no data",
+            //pretext: "fireblocks notification",
+            fallback: "fireblocks notice: " + inputJSON.data.status,
             color: "#B1063A",
             author_name: "fireblocks - Optage(testnet)",
             title: inputJSON.type,
@@ -77,6 +82,8 @@ exports.handler = async (event, context) => {
         }
     ]
 
+    // # passing QUEUED # 
+    /*
     if (inputJSON.data.status === "QUEUED"){
         console.log("Status is QUEUED, so skipped posting slack");
         return {
@@ -84,11 +91,18 @@ exports.handler = async (event, context) => {
             body: "ok"
         };
     }
+    */
 
+    // # get thread ID #
+    const thread = await search_timestamp_for_txID(inputJSON.data.id);
+    console.log(`thread is ${thread}`)
 
-    // ##### post slack #########################################
-    await postSlack(slackClient,channel,attachments);
-
+    // # post slack #
+    if(thread){
+        await postSlack(attachments,thread);
+    }else{
+        await postSlack(attachments);
+    }
 
     return {
         statusCode: 200,
@@ -96,13 +110,65 @@ exports.handler = async (event, context) => {
     };
 };
 
-async function postSlack(slackClient, channel, attachments) {
+
+// ##### get conversation history #####
+async function getConversationHistory(){
+    try{
+        const result = await slackClient.conversations.history({
+            channel: channel,
+            limit: 5,
+        });
+        console.log(result.messages);
+        return result.messages
+    }catch(error){
+        console.error("get conversation error: ",error);
+        console.dir(error, { depth: null });
+    }
+}
+
+// ##### search tx_id from conversation history #####
+async function search_timestamp_for_txID(target_txid){
+    console.log(`target_txid is ${target_txid}`);
+    const conversations = await getConversationHistory();
+    console.log(conversations);
+
+    let thread_ts=null;
+    conversations.forEach((item,index) =>{
+        if(item.attachments){
+            console.log(`Index ${index}: found attachments`);
+
+            item.attachments.forEach((attachment) =>{
+                //console.log(`Attachment inner`);
+
+                const regex = /transaction ID : `(.+?)`/;
+                const matches = attachment.text.match(regex);
+
+                if(matches && matches[1]){
+                    console.log(`Found Transaction ID: ${matches[1]}`);
+
+                    if(matches[1] === target_txid){
+                        console.log(`Match TS: ${item.ts}`);
+                        thread_ts = item.ts;
+                    }
+
+                }else
+                    console.log(`Couldn't find Transaction ID`);
+            });
+        }
+    });
+    console.log(`return thread_ts is ${thread_ts}`);
+    return thread_ts;
+}
+
+// ##### post slack ####
+async function postSlack(attachments,thread) {
     try {
         const response = await slackClient.chat.postMessage({
             channel: channel,
             //text: attachments,
             attachments: attachments,
-            as_user: true
+            as_user: true,
+            ...(thread != null && { thread_ts: thread })
         });
         console.log("slackResponse: ", response);
         return response;
