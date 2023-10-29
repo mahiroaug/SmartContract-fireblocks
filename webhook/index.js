@@ -17,6 +17,17 @@ tSM7QYNhlftT4/yVvYnk0YcCAwEAAQ==
 -----END PUBLIC KEY-----`.replace(/\\n/g, "\n");
 
 
+
+// ##### CONSTANTS #########################################
+const blockchainExplorerUrls = {
+    ETH: "https://etherscan.io/",
+    ETH_TEST3: "https://goerli.etherscan.io/",
+    ETH_TEST4: "https://holesky.etherscan.io/",
+    MATIC: "https://polygonscan.com/",
+    MATIC_POLYGON_MUMBAI: "https://mumbai.polygonscan.com/"
+  };
+
+
 const slackClient = new WebClient(process.env.SLACK_OAUTH_TOKEN, {
     // LogLevel can be imported and used to make debugging simpler
     logLevel: LogLevel.DEBUG
@@ -47,6 +58,34 @@ exports.handler = async (event, context) => {
     const inputJSON = JSON.parse(event.body); //inputJSON(object)
     console.log("inputJSON:",inputJSON);
 
+    // param check
+    let sourceAddr = "null";
+    let destinationAddr = "null";
+    let txHash = "null";
+    let txURL = "null";
+
+    if (inputJSON.data.sourceAddress) {
+        sourceAddr = inputJSON.data.sourceAddress;
+    }
+    if (inputJSON.data.destinationAddress) {
+        destinationAddr = inputJSON.data.destinationAddress;
+    }
+    if (inputJSON.data.txHash) {
+        txHash = inputJSON.data.txHash;
+        txURL = blockchainExplorerUrls[inputJSON.data.assetId] + "tx/" + txHash;
+    }
+    if (Array.isArray(inputJSON.data.networkRecords)) {
+        inputJSON.data.networkRecords.forEach((record, index) => {
+            if (record.txHash) {
+                if(txHash.length < record.txHash.length){
+                    txHash = record.txHash;
+                    txURL = blockchainExplorerUrls[inputJSON.data.assetId] + "tx/" + txHash;
+                }
+            }
+        });
+    }
+
+    //create attachments
     const attachments = [
         {
             //pretext: "fireblocks notification",
@@ -54,18 +93,8 @@ exports.handler = async (event, context) => {
             color: "#B1063A",
             author_name: "fireblocks - Optage(testnet)",
             title: inputJSON.type,
-            text: "transaction ID : `" + inputJSON.data.id + "`",
+            text: "TX_ID : `" + inputJSON.data.id + "`",
             fields: [
-                {
-                    title: "source",
-                    value: inputJSON.data.source.type + "\n" + inputJSON.data.source.name,
-                    short: "true"
-                },
-                {
-                    title: "destination",
-                    value: inputJSON.data.destination.type + "\n" + inputJSON.data.destination.name,
-                    short: "true"
-                },
                 {
                     title: "opration/amount",
                     value: inputJSON.data.operation + "\n" + inputJSON.data.amount + " " + inputJSON.data.assetId,
@@ -76,11 +105,41 @@ exports.handler = async (event, context) => {
                     value: inputJSON.data.status,
                     short: "true"
                 },
+                {
+                    title: "source",
+                    value: inputJSON.data.source.type + "\n" + inputJSON.data.source.name + "{" + inputJSON.data.source.id + "}",
+                    short: "true"
+                },
+                {
+                    title: "destination",
+                    value: inputJSON.data.destination.type + "\n" + inputJSON.data.destination.name + "{" + inputJSON.data.destination.id + "}",
+                    short: "true"
+                },
+                {
+                    title: "sourceAddr",
+                    value: sourceAddr,
+                    short: "true"
+                },
+                {
+                    title: "destinationAddr",
+                    value: destinationAddr,
+                    short: "true"
+                },
+                {
+                    title: "txHash",
+                    value: txHash,
+                    short: "true"
+                },
+                {
+                    title: "explorer",
+                    value: txURL,
+                    short: "true"
+                }
             ],
             footer: inputJSON.data.note + " (" + inputJSON.data.createdBy + ") ",
             ts: currentUnixTime
         }
-    ]
+    ];
 
     // # passing QUEUED # 
     /*
@@ -140,7 +199,7 @@ async function search_timestamp_for_txID(target_txid){
             item.attachments.forEach((attachment) =>{
                 //console.log(`Attachment inner`);
 
-                const regex = /transaction ID : `(.+?)`/;
+                const regex = /TX_ID : `(.+?)`/;
                 const matches = attachment.text.match(regex);
 
                 if(matches && matches[1]){

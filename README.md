@@ -67,7 +67,7 @@ aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb
 #### latest
 ```
 cd webhook
-zip -r lf_set.zip ./node_modules index.js 
+zip -r lf_set.zip index.js 
 aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb://lf_set.zip
 ```
 
