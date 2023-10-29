@@ -1,4 +1,5 @@
 const { WebClient, LogLevel } = require("@slack/web-api");
+//const { pro } = require("ccxt");
 const crypto = require("crypto");
 
 const publicKey = `-----BEGIN PUBLIC KEY-----
@@ -33,7 +34,7 @@ const slackClient = new WebClient(process.env.SLACK_OAUTH_TOKEN, {
     logLevel: LogLevel.DEBUG
 });
 const channel = process.env.SLACK_POST_CHANNEL;
-
+const author_name = process.env.AUTHOR_NAME;
 
 
 exports.handler = async (event, context) => {
@@ -91,7 +92,7 @@ exports.handler = async (event, context) => {
             //pretext: "fireblocks notification",
             fallback: "fireblocks notice: " + inputJSON.data.status,
             color: "#B1063A",
-            author_name: "fireblocks - Optage(testnet)",
+            author_name: author_name,
             title: inputJSON.type,
             text: "TX_ID : `" + inputJSON.data.id + "`",
             fields: [
