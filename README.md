@@ -53,7 +53,7 @@ METAMASK=
 
 
 #### deplicated
-```
+```bash
 cd webhook
 zip -r layer.zip node_modules
 aws s3 cp layer.zip s3://YOUR_BUCKET_NAME/DATE/
@@ -65,7 +65,7 @@ aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb
 ```
 
 #### latest
-```
+```bash
 cd webhook
 zip -r lf_set.zip index.js 
 aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb://lf_set.zip
@@ -73,7 +73,7 @@ aws lambda update-function-code --function-name <FUNCTION_NAME> --zip-file fileb
 
 ### STEP5: run script
 
-```
+```bash
 cd <PROJECT_ROOT>
 node testScript/test02.js
 ```
