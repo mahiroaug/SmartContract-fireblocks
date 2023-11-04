@@ -176,7 +176,7 @@ async function getConversationHistory(){
     try{
         const result = await slackClient.conversations.history({
             channel: channel,
-            limit: 5,
+            limit: 50,
         });
         console.log(result.messages);
         return result.messages
