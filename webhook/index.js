@@ -23,10 +23,10 @@ tSM7QYNhlftT4/yVvYnk0YcCAwEAAQ==
 const blockchainExplorerUrls = {
     ETH: "https://etherscan.io/",
     ETH_TEST3: "https://goerli.etherscan.io/",
-    ETH_TEST4: "https://holesky.etherscan.io/",
+    ETH_TEST6: "https://holesky.etherscan.io/",
     MATIC: "https://polygonscan.com/",
     MATIC_POLYGON_MUMBAI: "https://mumbai.polygonscan.com/"
-  };
+};
 
 
 const slackClient = new WebClient(process.env.SLACK_OAUTH_TOKEN, {
